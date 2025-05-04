@@ -1,4 +1,5 @@
-# this action creates an exe with the pyinstaller function within github actions
+name: Build and Release
+
 on:
   push:
     branches: [main]
@@ -7,17 +8,35 @@ jobs:
   deploy:
     runs-on: windows-latest
     env:
-      tag: v1.0.4
-      script: script
+      script: script  # Ton nom de script
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Nécessaire pour avoir l'historique des tags
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          # Récupère le dernier tag
+          git fetch --tags
+          latest_tag=$(git describe --tags --abbrev=0 || echo "v0.0.0")
+          echo "Latest tag: $latest_tag"
+          
+          # Incrémente le numéro de version (semver)
+          version=${latest_tag#v}
+          IFS='.' read -r major minor patch <<< "$version"
+          new_patch=$((patch + 1))
+          new_tag="v$major.$minor.$new_patch"
+          
+          echo "New tag: $new_tag"
+          echo "::set-output name=tag::$new_tag"
 
       - name: Check Tag Exists
         uses: mukunku/tag-exists-action@v1.0.0
         id: checkTag
         with: 
-          tag: ${{ env.tag }}
+          tag: ${{ steps.get_tag.outputs.tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -46,5 +65,5 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           artifacts: dist/${{ env.script }}.exe
-          tag: ${{ env.tag }}
+          tag: ${{ steps.get_tag.outputs.tag }}
           token: ${{ secrets.GITHUB_TOKEN }}
