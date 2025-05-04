@@ -17,6 +17,7 @@ jobs:
 
       - name: Get latest tag
         id: get_tag
+        shell: bash
         run: |
           # Récupère le dernier tag
           git fetch --tags
@@ -30,7 +31,7 @@ jobs:
           new_tag="v$major.$minor.$new_patch"
           
           echo "New tag: $new_tag"
-          echo "::set-output name=tag::$new_tag"
+          echo "tag=$new_tag" >> $GITHUB_OUTPUT
 
       - name: Check Tag Exists
         uses: mukunku/tag-exists-action@v1.0.0
