@@ -7,7 +7,7 @@ jobs:
   deploy:
     runs-on: windows-latest
     env:
-      tag: v1.0.3
+      tag: v1.0.4
       script: script
     steps:
       - name: Checkout Repo
